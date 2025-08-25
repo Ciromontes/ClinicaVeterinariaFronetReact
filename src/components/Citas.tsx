@@ -1,21 +1,18 @@
+
+// --- file: src/components/Citas.tsx ---
+// Listado de citas genérico con UI moderna reutilizando CitaCard.
+// Endpoint: GET /api/citas (NO se modifica).
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
-
-interface Cita {
-    id: number;
-    fechaCita: string;
-    horaCita: string;
-    motivo: string;
-    estadoCita: string;
-}
+import CitaCard, {type Cita } from "./CitaCard";
 
 const Citas: React.FC = () => {
     const { token } = useAuth();
     const [citas, setCitas] = useState<Cita[]>([]);
     const [error, setError] = useState("");
 
-    // Obtiene las citas usando el token
+    // Obtiene las citas usando el token (sin cambiar endpoint)
     useEffect(() => {
         const fetchCitas = async () => {
             try {
@@ -23,7 +20,7 @@ const Citas: React.FC = () => {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setCitas(res.data);
-            } catch (err) {
+            } catch {
                 setError("No se pudieron cargar las citas");
             }
         };
@@ -31,18 +28,20 @@ const Citas: React.FC = () => {
     }, [token]);
 
     return (
-        <div style={{ maxWidth: 600, margin: "auto", padding: 20 }}>
-            <h2>Mis Citas</h2>
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            <ul>
-                {citas.map(cita => (
-                    <li key={cita.id}>
-                        {cita.fechaCita} {cita.horaCita} - {cita.motivo} ({cita.estadoCita})
-                    </li>
+        <>
+            <h1 className="page__title">Mis Citas</h1>
+            <p className="page__subtitle">Consulta y administra tus próximas citas.</p>
+            {error && <p style={{ color: "crimson" }}>{error}</p>}
+
+            {/* Lista de tarjetas de citas */}
+            <div className="grid" style={{ gridTemplateColumns: "1fr", gap: "1rem" }}>
+                {citas.map((c) => (
+                    <CitaCard key={c.id} cita={c} />
                 ))}
-            </ul>
-        </div>
+            </div>
+        </>
     );
 };
 
 export default Citas;
+
