@@ -1,4 +1,3 @@
-
 // --- file: src/App.tsx ---
 // Enrutador principal con rutas protegidas por token y por rol.
 // Redirige automáticamente al dashboard adecuado según rol.
@@ -13,6 +12,7 @@ import DashboardCliente from "./components/DashboardCliente";
 import DashboardVeterinario from "./components/DashboardVeterinario";
 import DashboardRecepcionista from "./components/DashboardRecepcionista";
 import DashboardAdmin from "./components/DashboardAdmin";
+import HistoriasPage from "./components/HistoriasPage";
 
 // Ruta protegida por token
 const PrivateRoute = ({ children }: { children: JSX.Element }) => {
@@ -91,15 +91,7 @@ const App: React.FC = () => (
                                 <Layout>
                                     <Routes>
                                         <Route path="agenda" element={<DashboardVeterinario />} />
-                                        <Route
-                                            path="historias"
-                                            element={
-                                                <>
-                                                    <h1 className="page__title">Historias clínicas</h1>
-                                                    <div className="card"><div className="card__body">Próximamente...</div></div>
-                                                </>
-                                            }
-                                        />
+                                        <Route path="historias" element={<HistoriasPage />} />
                                         <Route
                                             path="reportes"
                                             element={
