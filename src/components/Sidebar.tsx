@@ -1,4 +1,3 @@
-
 // --- file: src/components/Sidebar.tsx ---
 // Sidebar dinámico según rol. Muestra menús distintos para CLIENTE, VETERINARIO, RECEPCIONISTA y ADMIN.
 // Usa NavLink para activar la opción actual.
@@ -8,7 +7,7 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import {
     Home, PawPrint, CalendarCheck, Receipt, Users,
-    Stethoscope, ClipboardList, BarChart3, Package, CreditCard
+    Stethoscope, ClipboardList, BarChart3, Package, CreditCard, UserCog
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -49,6 +48,7 @@ const menuByRole: Record<string, MenuGroup[]> = {
             title: "Administración",
             items: [
                 { to: "/admin/dashboard", label: "Dashboard", icon: <Home size={18} /> },
+                { to: "/admin/usuarios", label: "Usuarios", icon: <UserCog size={18} /> },
                 { to: "/admin/veterinarios", label: "Veterinarios", icon: <Stethoscope size={18} /> },
                 { to: "/admin/inventario", label: "Inventario", icon: <Package size={18} /> },
                 { to: "/admin/pagos", label: "Pagos", icon: <CreditCard size={18} /> },

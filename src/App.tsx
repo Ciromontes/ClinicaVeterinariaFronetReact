@@ -13,6 +13,7 @@ import DashboardVeterinario from "./components/DashboardVeterinario";
 import DashboardRecepcionista from "./components/DashboardRecepcionista";
 import DashboardAdmin from "./components/DashboardAdmin";
 import HistoriasPage from "./components/HistoriasPage";
+import TablaUsuarios from "./components/TablaUsuarios";
 
 // Ruta protegida por token
 const PrivateRoute = ({ children }: { children: JSX.Element }) => {
@@ -144,6 +145,7 @@ const App: React.FC = () => (
                                 <Layout>
                                     <Routes>
                                         <Route path="dashboard" element={<DashboardAdmin />} />
+                                        <Route path="usuarios" element={<TablaUsuarios />} />
                                         <Route
                                             path="veterinarios"
                                             element={
@@ -195,4 +197,3 @@ const App: React.FC = () => (
 );
 
 export default App;
-
