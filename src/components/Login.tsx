@@ -1,4 +1,3 @@
-
 // --- file: src/components/Login.tsx ---
 // Pantalla de login: conserva endpoint POST /api/auth/login (NO se modifica).
 // Tras login exitoso, guarda token/rol y navega a /dashboard para resolver por rol.

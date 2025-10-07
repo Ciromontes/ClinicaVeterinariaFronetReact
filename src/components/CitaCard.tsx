@@ -1,4 +1,3 @@
-
 // --- file: src/components/CitaCard.tsx ---
 // Tarjeta de Cita reutilizable con chips de estado y acciones.
 // No toca endpoints: solo representa datos recibidos.
@@ -81,4 +80,3 @@ const CitaCard: React.FC<Props> = ({
 };
 
 export default CitaCard;
-

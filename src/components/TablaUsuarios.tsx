@@ -49,7 +49,7 @@ const TablaUsuarios = () => {
     }, [busqueda, filtroRol, usuarios]);
 
     /**
-     * Carga la lista completa de usuarios desde el backend
+     * Carga todos los usuarios desde el backend
      */
     const cargarUsuarios = async () => {
         console.log('👥 Cargando lista de usuarios...');
@@ -358,5 +358,17 @@ const TablaUsuarios = () => {
     );
 };
 
-export default TablaUsuarios;
+/**
+ * Devuelve un color según el rol del usuario
+ */
+const getRolColor = (rol: string): string => {
+    const colores: Record<string, string> = {
+        'ADMIN': '#dc2626',
+        'VETERINARIO': '#2563eb',
+        'RECEPCIONISTA': '#7c3aed',
+        'CLIENTE': '#059669'
+    };
+    return colores[rol] || '#6b7280';
+};
 
+export default TablaUsuarios;

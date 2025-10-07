@@ -138,4 +138,3 @@ body {
 .stack--wrap { flex-wrap: wrap; gap: 0.5rem; }
 .muted { color: var(--color-muted); }
 .separator { height: 1px; background: var(--color-border); margin: 0.5rem 0 1rem; }
-

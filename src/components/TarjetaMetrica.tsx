@@ -1,11 +1,11 @@
-import type { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from "lucide-react"
 
 interface TarjetaMetricaProps {
-    titulo: string;
-    valor: number | string;
-    icono: LucideIcon;
-    colorIcono?: string;
-    colorFondo?: string;
+  titulo: string
+  valor: number | string
+  icono: LucideIcon
+  colorIcono?: string
+  colorFondo?: string
 }
 
 /**
@@ -13,29 +13,25 @@ interface TarjetaMetricaProps {
  * Muestra un título, valor numérico y un icono con colores personalizables
  */
 const TarjetaMetrica = ({
-    titulo,
-    valor,
-    icono: Icono,
-    colorIcono = 'text-blue-600',
-    colorFondo = 'bg-blue-100'
+  titulo,
+  valor,
+  icono: Icono,
+  colorIcono = "text-blue-600",
+  colorFondo = "bg-blue-50",
 }: TarjetaMetricaProps) => {
-    return (
-        <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-6 border-2 border-gray-100">
-            <div className="flex items-center justify-between">
-                <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 uppercase tracking-wide mb-2">
-                        {titulo}
-                    </p>
-                    <p className="text-3xl font-bold text-gray-900">
-                        {valor}
-                    </p>
-                </div>
-                <div className={`${colorFondo} p-4 rounded-full`}>
-                    <Icono className={`w-8 h-8 ${colorIcono}`} />
-                </div>
-            </div>
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-5 hover:shadow-md transition-shadow">
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <p className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-2">{titulo}</p>
+          <p className="text-2xl font-bold text-gray-900">{valor}</p>
         </div>
-    );
-};
+        <div className={`${colorFondo} p-3 rounded-lg`}>
+          <Icono className={`w-6 h-6 ${colorIcono}`} />
+        </div>
+      </div>
+    </div>
+  )
+}
 
-export default TarjetaMetrica;
+export default TarjetaMetrica

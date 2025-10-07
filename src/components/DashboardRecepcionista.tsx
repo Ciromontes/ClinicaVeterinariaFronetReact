@@ -1,4 +1,3 @@
-
 // --- file: src/components/DashboardRecepcionista.tsx ---
 // Dashboard para RECEPCIONISTA: lista y gestión de citas con CTA "Nueva cita".
 // Endpoints: GET /api/citas (NO se modifica).
@@ -65,4 +64,3 @@ const DashboardRecepcionista: React.FC = () => {
 };
 
 export default DashboardRecepcionista;
-

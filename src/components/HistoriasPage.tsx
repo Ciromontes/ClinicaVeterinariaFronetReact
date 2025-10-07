@@ -18,4 +18,3 @@ const HistoriasPage = () => {
 };
 
 export default HistoriasPage;
-

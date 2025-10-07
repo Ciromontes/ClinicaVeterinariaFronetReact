@@ -1,4 +1,3 @@
-
 // --- file: src/components/MascotaCard.tsx ---
 // Tarjeta para mostrar una mascota con foto, especie y edad, y acciones rápidas.
 // Solo UI, no llama endpoints.
@@ -56,4 +55,3 @@ const MascotaCard: React.FC<Props> = ({
 };
 
 export default MascotaCard;
-

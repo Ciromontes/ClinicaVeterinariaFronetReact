@@ -257,4 +257,3 @@ const BuscadorHistorias = () => {
 };
 
 export default BuscadorHistorias;
-

@@ -4,6 +4,8 @@ import axios from "axios";
 import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import MascotaCard from "./MascotaCard";
+import AgendarCitaModal from "./AgendarCitaModal";
+import HistorialMascotaModal from "./HistorialMascotaModal";
 
 // ✅ Tipo actualizado para coincidir con el backend
 interface MascotaBackend {
@@ -32,6 +34,9 @@ const DashboardCliente: React.FC = () => {
     const [mascotas, setMascotas] = useState<Mascota[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string>("");
+    const [modalOpen, setModalOpen] = useState(false);
+    const [mascotaSeleccionada, setMascotaSeleccionada] = useState<number | undefined>(undefined);
+    const [historialModal, setHistorialModal] = useState<{ id: number; nombre: string } | null>(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -108,6 +113,25 @@ const DashboardCliente: React.FC = () => {
         loadMisMascotas();
     }, []);
 
+    const handleAgendar = (idMascota: number) => {
+        setMascotaSeleccionada(idMascota);
+        setModalOpen(true);
+    };
+
+    const handleVerHistorial = (idMascota: number, nombreMascota: string) => {
+        setHistorialModal({ id: idMascota, nombre: nombreMascota });
+    };
+
+    const handleModalClose = () => {
+        setModalOpen(false);
+        setMascotaSeleccionada(undefined);
+    };
+
+    const handleSuccess = () => {
+        // Recargar mascotas o redirigir a citas
+        navigate("/cliente/citas");
+    };
+
     if (loading) {
         return (
             <div>
@@ -145,33 +169,42 @@ const DashboardCliente: React.FC = () => {
                                 nombre={m.nombre}
                                 especie={m.especie}
                                 edad={m.edad}
-                                onAgendar={() => navigate("/cliente/citas")}
-                                onVerHistorial={() =>
-                                    navigate(`/cliente/mascotas/${m.id}/historial`)
-                                }
+                                onAgendar={() => handleAgendar(m.id)}
+                                onVerHistorial={() => handleVerHistorial(m.id, m.nombre)}
                             />
                         </div>
                     ))
                 ) : (
-                    <div style={{ padding: "2rem", textAlign: "center" }}>
-                        <p data-testid="sin-mascotas">
-                            No se encontraron mascotas.
-                            {!error && " Agrega tu primera mascota para comenzar."}
-                        </p>
-                    </div>
+                    <p style={{ gridColumn: "1 / -1", textAlign: "center", color: "#6b7280" }}>
+                        No tienes mascotas registradas aún.
+                    </p>
                 )}
             </div>
 
+            {/* Botón flotante para nueva cita */}
             <div className="fab">
-                <button
-                    className="btn btn--primary"
-                    onClick={() => navigate("/cliente/citas")}
-                    aria-label="Nueva cita"
-                >
+                <button className="btn btn--primary" onClick={() => setModalOpen(true)}>
                     <Plus size={18} />
                     <span> Nueva cita</span>
                 </button>
             </div>
+
+            {/* Modal de agendar cita */}
+            <AgendarCitaModal
+                isOpen={modalOpen}
+                onClose={handleModalClose}
+                mascotaPreseleccionada={mascotaSeleccionada}
+                onSuccess={handleSuccess}
+            />
+
+            {/* Modal de historial clínico */}
+            {historialModal && (
+                <HistorialMascotaModal
+                    idMascota={historialModal.id}
+                    nombreMascota={historialModal.nombre}
+                    onClose={() => setHistorialModal(null)}
+                />
+            )}
         </>
     );
 };
