@@ -1,7 +1,7 @@
 // filepath: d:\Downloads\Chagpt5ClinicVet\frontend\src\components\TablaUsuarios.tsx
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { UserCog, Search, AlertTriangle, CheckCircle, XCircle, Filter } from 'lucide-react';
+import { UserCog, Search, AlertTriangle, CheckCircle, XCircle, Filter, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 /**
@@ -16,12 +16,39 @@ interface Usuario {
 }
 
 /**
+ * Decodifica el token JWT para obtener el email del usuario autenticado
+ * @param token - Token JWT
+ * @returns Email del usuario o null si falla
+ */
+const decodificarToken = (token: string | null): string | null => {
+    if (!token) return null;
+
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+                .split('')
+                .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                .join('')
+        );
+
+        const payload = JSON.parse(jsonPayload);
+        return payload.sub || null; // 'sub' suele contener el email/username
+    } catch (error) {
+        console.error('Error al decodificar token:', error);
+        return null;
+    }
+};
+
+/**
  * Componente TablaUsuarios
  * Permite al ADMIN:
  * - Listar todos los usuarios del sistema
  * - Filtrar por rol
  * - Buscar por email o nombre
  * - Activar/desactivar usuarios con toggle switch
+ * - PREVENCIÓN: No permite que un admin se auto-desactive
  *
  * Endpoints consumidos:
  * - GET /api/usuarios (listar todos)
@@ -37,6 +64,9 @@ const TablaUsuarios = () => {
     const [error, setError] = useState<string | null>(null);
     const [busqueda, setBusqueda] = useState('');
     const [filtroRol, setFiltroRol] = useState<string>('TODOS');
+
+    // Obtener email del usuario autenticado desde el token o localStorage
+    const emailActual = decodificarToken(token) || localStorage.getItem('userEmail');
 
     // Cargar usuarios al montar el componente
     useEffect(() => {
@@ -98,6 +128,20 @@ const TablaUsuarios = () => {
     };
 
     /**
+     * Verifica si el usuario es el mismo que está autenticado
+     * y si es administrador (no debe poder auto-desactivarse)
+     * @param usuario - Usuario a verificar
+     * @returns true si es el propio admin activo
+     */
+    const esPropioUsuarioAdmin = (usuario: Usuario): boolean => {
+        return (
+            usuario.email === emailActual &&
+            usuario.rol === 'ADMIN' &&
+            usuario.activo
+        );
+    };
+
+    /**
      * Cambia el estado (activo/inactivo) de un usuario
      * @param id - ID del usuario
      * @param nuevoEstado - true para activar, false para desactivar
@@ -106,7 +150,7 @@ const TablaUsuarios = () => {
         console.log(`🔄 Cambiando estado del usuario ${id} a ${nuevoEstado ? 'activo' : 'inactivo'}...`);
 
         try {
-            await axios.put(
+            const response = await axios.put(
                 `http://localhost:8080/api/usuarios/${id}/estado`,
                 { activo: nuevoEstado },
                 {
@@ -117,17 +161,34 @@ const TablaUsuarios = () => {
                 }
             );
 
-            console.log('✅ Estado actualizado correctamente');
+            if (response.status === 200) {
+                console.log('✅ Estado actualizado correctamente');
 
-            // Actualizar el estado local sin recargar toda la lista
-            setUsuarios(usuarios.map(u =>
-                u.id === id ? { ...u, activo: nuevoEstado } : u
-            ));
+                // Actualizar el estado local sin recargar toda la lista
+                setUsuarios(usuarios.map(u =>
+                    u.id === id ? { ...u, activo: nuevoEstado } : u
+                ));
+
+                // Mostrar notificación de éxito
+                alert('✅ Estado del usuario actualizado correctamente');
+            }
 
         } catch (err: unknown) {
             console.error('❌ Error al cambiar estado:', err);
-            const error = err as { response?: { data?: string } };
-            alert(`Error: ${error.response?.data || 'No se pudo cambiar el estado del usuario'}`);
+            const error = err as { response?: { status?: number; data?: string } };
+
+            // Manejo de errores específicos
+            if (error.response?.status === 400) {
+                // Error de validación del backend
+                alert(`⚠️ ${error.response.data || 'Error de validación'}`);
+            } else if (error.response?.status === 403) {
+                alert('❌ No tienes permisos para realizar esta acción');
+            } else if (error.response?.status === 401) {
+                alert('❌ Sesión expirada. Por favor, inicia sesión nuevamente');
+                window.location.href = '/login';
+            } else {
+                alert('❌ Error al cambiar el estado del usuario. Intenta nuevamente.');
+            }
         }
     };
 
@@ -279,74 +340,101 @@ const TablaUsuarios = () => {
                                             </td>
                                         </tr>
                                     ) : (
-                                        usuariosFiltrados.map((usuario) => (
-                                            <tr key={usuario.id} className="hover:bg-gray-50 transition">
-                                                {/* Email */}
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm font-medium text-gray-900">
-                                                        {usuario.email}
-                                                    </div>
-                                                </td>
+                                        usuariosFiltrados.map((usuario) => {
+                                            const esPropio = esPropioUsuarioAdmin(usuario);
 
-                                                {/* Nombre */}
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-700">
-                                                        {usuario.nombre}
-                                                    </div>
-                                                </td>
-
-                                                {/* Rol */}
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border-2 ${obtenerColorRol(usuario.rol)}`}>
-                                                        {usuario.rol}
-                                                    </span>
-                                                </td>
-
-                                                {/* Estado */}
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                                                        usuario.activo 
-                                                            ? 'bg-green-100 text-green-800' 
-                                                            : 'bg-red-100 text-red-800'
-                                                    }`}>
-                                                        {usuario.activo ? (
-                                                            <>
-                                                                <CheckCircle className="w-3 h-3 mr-1" />
-                                                                Activo
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <XCircle className="w-3 h-3 mr-1" />
-                                                                Inactivo
-                                                            </>
-                                                        )}
-                                                    </span>
-                                                </td>
-
-                                                {/* Acciones - Toggle Switch */}
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <label className="flex items-center cursor-pointer">
-                                                        <div className="relative">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={usuario.activo}
-                                                                onChange={(e) => cambiarEstadoUsuario(usuario.id, e.target.checked)}
-                                                                className="sr-only"
-                                                            />
-                                                            <div className={`block w-14 h-8 rounded-full transition ${
-                                                                usuario.activo ? 'bg-green-500' : 'bg-gray-300'
-                                                            }`}></div>
-                                                            <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition ${
-                                                                usuario.activo ? 'transform translate-x-6' : ''
-                                                            }`}></div>
+                                            return (
+                                                <tr key={usuario.id} className="hover:bg-gray-50 transition">
+                                                    {/* Email */}
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="text-sm font-medium text-gray-900">
+                                                            {usuario.email}
+                                                            {esPropio && (
+                                                                <span className="ml-2 text-xs text-purple-600 font-bold">
+                                                                    (Tú)
+                                                                </span>
+                                                            )}
                                                         </div>
-                                                        <span className="ml-3 text-sm font-medium text-gray-700">
-                                                            {usuario.activo ? 'Desactivar' : 'Activar'}
+                                                    </td>
+
+                                                    {/* Nombre */}
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="text-sm text-gray-700">
+                                                            {usuario.nombre}
+                                                        </div>
+                                                    </td>
+
+                                                    {/* Rol */}
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border-2 ${obtenerColorRol(usuario.rol)}`}>
+                                                            {usuario.rol}
                                                         </span>
-                                                    </label>
-                                                </td>
-                                            </tr>
-                                        ))
+                                                    </td>
+
+                                                    {/* Estado */}
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                                                            usuario.activo 
+                                                                ? 'bg-green-100 text-green-800' 
+                                                                : 'bg-red-100 text-red-800'
+                                                        }`}>
+                                                            {usuario.activo ? (
+                                                                <>
+                                                                    <CheckCircle className="w-3 h-3 mr-1" />
+                                                                    Activo
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <XCircle className="w-3 h-3 mr-1" />
+                                                                    Inactivo
+                                                                </>
+                                                            )}
+                                                        </span>
+                                                    </td>
+
+                                                    {/* Acciones - Toggle Switch con protección */}
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="flex flex-col">
+                                                            <label className={`flex items-center ${esPropio ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                                                                <div className="relative">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={usuario.activo}
+                                                                        onChange={(e) => cambiarEstadoUsuario(usuario.id, e.target.checked)}
+                                                                        disabled={esPropio}
+                                                                        className="sr-only"
+                                                                        title={esPropio ? '⚠️ No puedes desactivarte a ti mismo' : ''}
+                                                                    />
+                                                                    <div className={`block w-14 h-8 rounded-full transition ${
+                                                                        esPropio
+                                                                            ? 'bg-gray-300 opacity-50 cursor-not-allowed'
+                                                                            : usuario.activo 
+                                                                            ? 'bg-green-500' 
+                                                                            : 'bg-gray-300'
+                                                                    }`}></div>
+                                                                    <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition ${
+                                                                        usuario.activo ? 'transform translate-x-6' : ''
+                                                                    }`}></div>
+                                                                </div>
+                                                                <span className={`ml-3 text-sm font-medium ${
+                                                                    esPropio ? 'text-gray-400' : 'text-gray-700'
+                                                                }`}>
+                                                                    {usuario.activo ? 'Desactivar' : 'Activar'}
+                                                                </span>
+                                                            </label>
+
+                                                            {/* Mensaje de advertencia para el propio usuario */}
+                                                            {esPropio && (
+                                                                <div className="mt-2 flex items-center text-xs text-red-600 font-semibold">
+                                                                    <ShieldAlert className="w-3 h-3 mr-1" />
+                                                                    No puedes desactivarte a ti mismo
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
                                     )}
                                 </tbody>
                             </table>
@@ -358,17 +446,5 @@ const TablaUsuarios = () => {
     );
 };
 
-/**
- * Devuelve un color según el rol del usuario
- */
-const getRolColor = (rol: string): string => {
-    const colores: Record<string, string> = {
-        'ADMIN': '#dc2626',
-        'VETERINARIO': '#2563eb',
-        'RECEPCIONISTA': '#7c3aed',
-        'CLIENTE': '#059669'
-    };
-    return colores[rol] || '#6b7280';
-};
 
 export default TablaUsuarios;
